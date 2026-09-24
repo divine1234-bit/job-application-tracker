@@ -1,9 +1,12 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { MongoClient } from "mongodb";
+
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { initializeUserBoard } from "../init-user-board";
+import connectDB from "../db";
+
+
 
 const MONGODB_URI = process.env.MONGODB_URI;
 const MONGODB_DB_NAME = process.env.MONGODB_DB_NAME || "job-board";
@@ -14,20 +17,9 @@ if (!MONGODB_URI) {
 
 // Keep one client across Next.js development reloads. Recreating the client
 // for every module evaluation can leave Better Auth holding a closed topology.
-const globalForAuth = globalThis as typeof globalThis & {
-  betterAuthMongoClient?: MongoClient;
-};
 
-const client =
-  globalForAuth.betterAuthMongoClient ??
-  new MongoClient(MONGODB_URI, {
-    serverSelectionTimeoutMS: 5000,
-    connectTimeoutMS: 5000,
-  });
-
-if (process.env.NODE_ENV !== "production") {
-  globalForAuth.betterAuthMongoClient = client;
-}
+const mongooseInstance = await connectDB()
+const client = mongooseInstance.connection.getClient();
 
 const db = client.db(MONGODB_DB_NAME);
 

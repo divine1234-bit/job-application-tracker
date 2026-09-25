@@ -15,6 +15,39 @@ if (!MONGODB_URI) {
   throw new Error("Please define the MONGODB_URI environment variable in .env.local");
 }
 
+function normalizeTrustedOrigin(value: string | undefined) {
+  const origin = value?.trim();
+
+  if (!origin) return null;
+
+  // Better Auth supports wildcard origin patterns in addition to full URLs.
+  if (origin.includes("*") || origin.includes("?")) {
+    return origin.replace(/\/+$/, "");
+  }
+
+  try {
+    return new URL(origin).origin;
+  } catch {
+    return null;
+  }
+}
+
+const trustedOrigins = Array.from(
+  new Set(
+    [
+      process.env.BETTER_AUTH_URL,
+      process.env.NEXT_PUBLIC_BETTER_AUTH_URL,
+      ...(process.env.BETTER_AUTH_TRUSTED_ORIGINS?.split(",") || []),
+      process.env.VERCEL_URL && `https://${process.env.VERCEL_URL}`,
+      process.env.VERCEL_BRANCH_URL && `https://${process.env.VERCEL_BRANCH_URL}`,
+      process.env.VERCEL_PROJECT_PRODUCTION_URL &&
+        `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}`,
+    ]
+      .map((origin) => normalizeTrustedOrigin(origin || undefined))
+      .filter((origin): origin is string => Boolean(origin)),
+  ),
+);
+
 // Keep one client across Next.js development reloads. Recreating the client
 // for every module evaluation can leave Better Auth holding a closed topology.
 
@@ -25,6 +58,7 @@ const db = client.db(MONGODB_DB_NAME);
 
 export const auth = betterAuth({
   baseURL: process.env.BETTER_AUTH_URL,
+  trustedOrigins,
   database: mongodbAdapter(db, {
     client,
   }),

@@ -2,13 +2,11 @@
 
 import { DropdownMenuItem } from "@/components/ui/dropdown-menu"
 import { signOut } from "@/lib/auth/auth-client"
-import { useRouter } from "next/navigation"
 import { useState } from "react"
 
 
 export default function SignOutButton() {
 
-    const router = useRouter()
     const [loading, setLoading] = useState(false)
 
     async function handleSignOut() {
@@ -24,8 +22,9 @@ export default function SignOutButton() {
                 return
             }
 
-            router.replace("/sign-in")
-            router.refresh()
+            // Do a full navigation so the server and the client both start
+            // with the cleared session after logging out.
+            window.location.replace("/sign-in")
         } catch {
             setLoading(false)
             alert("Error signing out");

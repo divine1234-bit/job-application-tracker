@@ -6,7 +6,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { signIn } from "@/lib/auth/auth-client";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useState } from "react";
 import LoadingScreen from "@/components/loading-screen";
 
@@ -17,8 +16,6 @@ export default function SignIn() {
     
         const [error, setError] = useState("");
             const [loading, setLoading] = useState(false);
-    
-            const router = useRouter();
     
             async function handleSubmit(e: React.FormEvent<HTMLFormElement>){
                 e.preventDefault();
@@ -36,7 +33,9 @@ export default function SignIn() {
                         setError(result.error.message ?? "failed to sign in")
                         setLoading(false)
                     } else {
-                        router.push("/dashboard");
+                        // Reload the protected route so it reads the new
+                        // session cookie on the server as well.
+                        window.location.assign("/dashboard");
                     }
                 } catch (err) {
                     setError(

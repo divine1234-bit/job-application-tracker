@@ -8,7 +8,6 @@ import {signUp} from '@/lib/auth/auth-client'
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import LoadingScreen from "@/components/loading-screen";
 
 export default function SignUp() {
@@ -18,8 +17,6 @@ export default function SignUp() {
 
     const [error, setError] = useState("");
         const [loading, setLoading] = useState(false);
-
-        const router = useRouter();
 
         async function handleSubmit(e: React.FormEvent<HTMLFormElement>){
             e.preventDefault();
@@ -38,7 +35,7 @@ export default function SignUp() {
                     setError(result.error.message ?? "failed to sign up")
                     setLoading(false)
                 } else {
-                    router.push("/dashboard");
+                    window.location.assign("/dashboard");
                 }
             } catch (err) {
                 setError(

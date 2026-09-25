@@ -30,12 +30,16 @@ interface JobApplicationCardProps {
   job: JobApplication;
   columns: Column[];
   dragHandleProps?: React.HTMLAttributes<HTMLElement>;
+  onUpdated?: (job: JobApplication) => void;
+  onDeleted?: (jobId: string) => void;
 }
 
 export default function JobApplicationCard({
   job,
   columns,
   dragHandleProps,
+  onUpdated,
+  onDeleted,
 }: JobApplicationCardProps) {
   const [isEditing, setIsEditing] = useState(false);
   const fieldId = (name: string) => `edit-job-${job._id}-${name}`;
@@ -63,6 +67,7 @@ export default function JobApplicationCard({
       });
 
       if (!result.error) {
+        onUpdated?.(result.data as JobApplication);
         setIsEditing(false);
       }
     } catch (err) {
@@ -76,6 +81,8 @@ export default function JobApplicationCard({
 
       if (result.error) {
         console.error("Failed to delete job application:", result.error);
+      } else {
+        onDeleted?.(job._id);
       }
     } catch (err) {
       console.error("Failed to move job application: ", err);
@@ -84,9 +91,13 @@ export default function JobApplicationCard({
 
   async function handleMove(newColumnId: string) {
     try {
-      await updateJobApplication(job._id, {
+      const result = await updateJobApplication(job._id, {
         columnId: newColumnId,
       });
+
+      if (!result.error) {
+        onUpdated?.(result.data as JobApplication);
+      }
     } catch (err) {
       console.error("Failed to move job application: ", err);
     }

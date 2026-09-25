@@ -16,10 +16,12 @@ import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import React, { useState } from "react";
 import { createJobApplication } from "@/lib/actions/job-applications";
+import { JobApplication } from "@/lib/models/models.types";
 
 interface CreateJobApplicationDialogProps {
   columnId: string;
   boardId: string;
+  onCreated?: (job: JobApplication) => void;
 }
 
 const INITIAL_FORM_DATA = {
@@ -36,6 +38,7 @@ const INITIAL_FORM_DATA = {
 export default function CreateJobApplicationDialog({
   columnId,
   boardId,
+  onCreated,
 }: CreateJobApplicationDialogProps) {
   const [open, setOpen] = useState<boolean>(false);
   const [formData, setFormData] = useState(INITIAL_FORM_DATA);
@@ -56,6 +59,7 @@ export default function CreateJobApplicationDialog({
       });
 
       if (!result.error) {
+        onCreated?.(result.data as JobApplication);
         setFormData(INITIAL_FORM_DATA);
         setOpen(false);
       } else {

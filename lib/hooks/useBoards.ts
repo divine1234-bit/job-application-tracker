@@ -9,6 +9,57 @@ export function useBoard(initialBoard?: Board | null) {
   const [columns, setColumns] = useState<Column[]>(initialBoard?.columns || []);
   const [error, setError] = useState<string | null>(null);
 
+  function addJob(job: JobApplication) {
+    setColumns((prev) =>
+      prev.map((column) =>
+        column._id === job.columnId
+          ? {
+              ...column,
+              jobApplications: [...column.jobApplications, job],
+            }
+          : column
+      )
+    );
+  }
+
+  function updateJob(job: JobApplication) {
+    setColumns((prev) => {
+      const nextColumns = prev.map((column) => ({
+        ...column,
+        jobApplications: column.jobApplications.filter(
+          (existingJob) => existingJob._id !== job._id
+        ),
+      }));
+
+      const targetColumnIndex = nextColumns.findIndex(
+        (column) => column._id === job.columnId
+      );
+
+      if (targetColumnIndex === -1) return prev;
+
+      const targetColumn = nextColumns[targetColumnIndex];
+      nextColumns[targetColumnIndex] = {
+        ...targetColumn,
+        jobApplications: [...targetColumn.jobApplications, job].sort(
+          (a, b) => a.order - b.order
+        ),
+      };
+
+      return nextColumns;
+    });
+  }
+
+  function removeJob(jobApplicationId: string) {
+    setColumns((prev) =>
+      prev.map((column) => ({
+        ...column,
+        jobApplications: column.jobApplications.filter(
+          (job) => job._id !== jobApplicationId
+        ),
+      }))
+    );
+  }
+
   async function moveJob(
     jobApplicationId: string,
     newColumnId: string,
@@ -97,6 +148,9 @@ export function useBoard(initialBoard?: Board | null) {
     board: initialBoard || null,
     columns,
     error,
+    addJob,
+    updateJob,
+    removeJob,
     moveJob,
     deleteColumn,
   };

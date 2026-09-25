@@ -6,7 +6,6 @@ import {
   Calendar,
   CheckCircle2,
   Mic,
-  MoreHorizontal,
   MoreVertical,
   Trash2,
   XCircle,
@@ -78,11 +77,17 @@ function DroppableColumn({
   config,
   boardId,
   sortedColumns,
+  onCreated,
+  onUpdated,
+  onDeleted,
 }: {
   column: Column;
   config: ColConfig;
   boardId: string;
   sortedColumns: Column[];
+  onCreated: (job: JobApplication) => void;
+  onUpdated: (job: JobApplication) => void;
+  onDeleted: (jobId: string) => void;
 }) {
   const { setNodeRef, isOver } = useDroppable({
     id: column._id,
@@ -93,7 +98,7 @@ function DroppableColumn({
   });
 
   const sortedJobs =
-    column.jobApplications?.sort((a, b) => a.order - b.order) || [];
+    [...(column.jobApplications || [])].sort((a, b) => a.order - b.order);
   return (
     <Card className="min-w-75 shrink-0 shadow-md p-0">
       <CardHeader
@@ -136,16 +141,22 @@ function DroppableColumn({
           items={sortedJobs.map((job) => job._id)}
           strategy={verticalListSortingStrategy}
         >
-          {sortedJobs.map((job, key) => (
+          {sortedJobs.map((job) => (
             <SortableJobCard
-              key={key}
+              key={job._id}
               job={{ ...job, columnId: job.columnId || column._id }}
               columns={sortedColumns}
+              onUpdated={onUpdated}
+              onDeleted={onDeleted}
             />
           ))}
         </SortableContext>
 
-        <CreateJobApplicationDialog columnId={column._id} boardId={boardId} />
+        <CreateJobApplicationDialog
+          columnId={column._id}
+          boardId={boardId}
+          onCreated={onCreated}
+        />
       </CardContent>
     </Card>
   );
@@ -154,9 +165,13 @@ function DroppableColumn({
 function SortableJobCard({
   job,
   columns,
+  onUpdated,
+  onDeleted,
 }: {
   job: JobApplication;
   columns: Column[];
+  onUpdated: (job: JobApplication) => void;
+  onDeleted: (jobId: string) => void;
 }) {
   const {
     attributes,
@@ -183,6 +198,8 @@ function SortableJobCard({
       <JobApplicationCard
         job={job}
         columns={columns}
+        onUpdated={onUpdated}
+        onDeleted={onDeleted}
         dragHandleProps={{ ...attributes, ...listeners }}
       />
     </div>
@@ -191,9 +208,11 @@ function SortableJobCard({
 
 export default function KanbanBoard({ board,  }: KanbanBoardProps) {
   const [activeId, setActiveId] = useState<string | null>(null);
-  const { columns, moveJob } = useBoard(board);
+  const { columns, addJob, updateJob, removeJob, moveJob } = useBoard(board);
 
-  const sortedColumns = columns?.sort((a, b) => a.order - b.order) || [];
+  const sortedColumns = [...(columns || [])].sort(
+    (a, b) => a.order - b.order
+  );
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -315,18 +334,21 @@ export default function KanbanBoard({ board,  }: KanbanBoardProps) {
     >
       <div className="space-y-4">
         <div className="flex gap-4 overflow-x-auto pb-4">
-          {sortedColumns.map((col, key) => {
-            const config = COLUMN_CONFIG[key] || {
+          {sortedColumns.map((col, index) => {
+            const config = COLUMN_CONFIG[index] || {
               color: "bg-gray-500",
               icon: <Calendar className="h-4 w-4" />,
             };
             return (
               <DroppableColumn
-                key={key}
+                key={col._id}
                 column={col}
                 config={config}
                 boardId={board._id}
                 sortedColumns={sortedColumns}
+                onCreated={addJob}
+                onUpdated={updateJob}
+                onDeleted={removeJob}
               />
             );
           })}

@@ -4,6 +4,7 @@ import { Board } from "@/lib/models";
 import { redirect } from "next/navigation";
 import KanbanBoard from "@/components/kanban-board";
 import { Suspense } from "react";
+import LoadingScreen from "@/components/loading-screen";
 
 async function getBoard(userId: string) {
   "use cache";
@@ -55,7 +56,7 @@ async function DashboardPage() {
 
 export default async function Dashboard() {
   return (
-    <Suspense fallback={<p>Loading...</p>}>
+    <Suspense fallback={<LoadingScreen message="Loading your job board..." />}>
       <DashboardPage />
     </Suspense>
   );

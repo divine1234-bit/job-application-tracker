@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import LoadingScreen from "@/components/loading-screen";
 
 export default function SignUp() {
     const [name, setName] = useState("");
@@ -35,6 +36,7 @@ export default function SignUp() {
 
                 if (result.error){
                     setError(result.error.message ?? "failed to sign up")
+                    setLoading(false)
                 } else {
                     router.push("/dashboard");
                 }
@@ -44,10 +46,13 @@ export default function SignUp() {
                         ? err.message
                         : "Unable to reach the authentication server. Please try again."
                 )
-            } finally{
                 setLoading(false)
             }
         } 
+
+    if (loading) {
+        return <LoadingScreen message="Creating your account..." />;
+    }
 
     return ( <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-white p-4">
         <Card className="w-full max-w-md border-gray-200 shadow-lg">

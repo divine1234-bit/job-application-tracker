@@ -8,6 +8,7 @@ import { signIn } from "@/lib/auth/auth-client";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import LoadingScreen from "@/components/loading-screen";
 
 export default function SignIn() {
         
@@ -33,6 +34,7 @@ export default function SignIn() {
     
                     if (result.error){
                         setError(result.error.message ?? "failed to sign in")
+                        setLoading(false)
                     } else {
                         router.push("/dashboard");
                     }
@@ -42,10 +44,14 @@ export default function SignIn() {
                             ? err.message
                             : "Unable to reach the authentication server. Please try again."
                     )
-                } finally{
                     setLoading(false)
                 }
             } 
+
+    if (loading) {
+        return <LoadingScreen message="Signing you in..." />;
+    }
+
     return ( <div className="flex min-h-[calc(100vh-4rem)] items-center justify-center bg-white p-4">
         <Card className="w-full max-w-md border-gray-200 shadow-lg">
             <CardHeader className="space-y-1">
